@@ -81,6 +81,13 @@ std::vector<std::pair<vtkSmartPointer<vtkPolygon>, vtkSmartPointer<vtkActor>>> p
 int ILine = 0;
 int ICircle = 0;
 int wCircle = 0;
+int wstar = 0;
+int wArc = 0;
+int wEllipse = 0;
+int wCube = 0;
+int wHeart = 0;
+int wSphere = 0;
+int wEllipsoid = 0;
 int IArc = 0;
 int IPolygon = 0;
 int IHeart = 0;
@@ -95,76 +102,85 @@ std::set<QString> drawnshapes;
 
 
 std::map<int, std::vector<std::string>> circleData;
+std::map<int, std::vector<std::string>> starData;
+std::map<int, std::vector<std::string>> ellipseData;
+std::map<int, std::vector<std::string>> cubeData;
+std::map<int, std::vector<std::string>> sphereData;
+std::map<int, std::vector<std::string>> heartData;
+std::map<int, std::vector<std::string>> EllipsoidData;
+std::map<int, std::vector<std::string>> arcData;
+
+
 
 
 namespace {
     // Define interaction style
     class customMouseInteractorStyle : public vtkInteractorStyleTrackballCamera
     {
-    /*public:
+        /*public:
 
-        static customMouseInteractorStyle* New();
-        vtkTypeMacro(customMouseInteractorStyle, vtkInteractorStyleTrackballCamera);
+            static customMouseInteractorStyle* New();
+            vtkTypeMacro(customMouseInteractorStyle, vtkInteractorStyleTrackballCamera);
 
-        virtual void OnLeftButtonDown() override
-        {
-            click++;
-            vtkRenderWindowInteractor* interactor = this->Interactor;
-            if (click == 1) {
-                this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],//pick the first point using mouse x&y
-                    this->Interactor->GetEventPosition()[1],
-                    0, // always zero.
-                    this->Interactor->GetRenderWindow()
-                    ->GetRenderers()
-                    ->GetFirstRenderer());//The renderer in which the picking operation will be performed.
-                double pickedone[3];
-                this->Interactor->GetPicker()->GetPickPosition(pickedone);
-                UpdateFirstPoint(pickedone);
-            }
-            if (click == 2) {
-                double pickedtwo[3];
-                this->Interactor->GetPicker()->GetPickPosition(pickedtwo);
+            virtual void OnLeftButtonDown() override
+            {
+                click++;
                 vtkRenderWindowInteractor* interactor = this->Interactor;
-                this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],//pick the first point using mouse x&y
-                    this->Interactor->GetEventPosition()[1],
-                    0, // always zero.
-                    this->Interactor->GetRenderWindow()
-                    ->GetRenderers()
-                    ->GetFirstRenderer());//The renderer in which the picking operation will be performed.
-                UpdateSecondPoint(pickedtwo);
-                click = 0;
+                if (click == 1) {
+                    this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],//pick the first point using mouse x&y
+                        this->Interactor->GetEventPosition()[1],
+                        0, // always zero.
+                        this->Interactor->GetRenderWindow()
+                        ->GetRenderers()
+                        ->GetFirstRenderer());//The renderer in which the picking operation will be performed.
+                    double pickedone[3];
+                    this->Interactor->GetPicker()->GetPickPosition(pickedone);
+                    UpdateFirstPoint(pickedone);
+                }
+                if (click == 2) {
+                    double pickedtwo[3];
+                    this->Interactor->GetPicker()->GetPickPosition(pickedtwo);
+                    vtkRenderWindowInteractor* interactor = this->Interactor;
+                    this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],//pick the first point using mouse x&y
+                        this->Interactor->GetEventPosition()[1],
+                        0, // always zero.
+                        this->Interactor->GetRenderWindow()
+                        ->GetRenderers()
+                        ->GetFirstRenderer());//The renderer in which the picking operation will be performed.
+                    UpdateSecondPoint(pickedtwo);
+                    click = 0;
+                }
+                double* point1 = LineSource->GetPoint1();
+                double* point2 = LineSource->GetPoint2();
+                char text[100];
+                sprintf(text, "Line coordinates: (%.2f, %.2f) - (%.2f, %.2f)", point1[0], point1[1], point2[0], point2[1]);
+                TextActor->SetInput(text);
+                TextActor->Modified();
+                //writeInFile();
+                // Forward events
+                vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
             }
-            double* point1 = LineSource->GetPoint1();
-            double* point2 = LineSource->GetPoint2();
-            char text[100];
-            sprintf(text, "Line coordinates: (%.2f, %.2f) - (%.2f, %.2f)", point1[0], point1[1], point2[0], point2[1]);
-            TextActor->SetInput(text);
-            TextActor->Modified();
-            //writeInFile();
-            // Forward events
-            vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-        }
-        void setLineSource(vtkLineSource* linesource) {
-            this->LineSource = linesource;
-        }
-        void setTextActor(vtkTextActor* actor) {
-            TextActor = actor;
-        }
-        void UpdateFirstPoint(double* pickedone) {
-            LineSource->SetPoint1(pickedone[0], pickedone[1], pickedone[2]);
-        }
-        void UpdateSecondPoint(double* pickedtwo) {
-            LineSource->SetPoint2(pickedtwo[0], pickedtwo[1], pickedtwo[2]);
-        }
-        void setVTKActor(vtkActor* lineActor) {
-            this->lineActor = lineActor;
-        }
+            void setLineSource(vtkLineSource* linesource) {
+                this->LineSource = linesource;
+            }
+            void setTextActor(vtkTextActor* actor) {
+                TextActor = actor;
+            }
+            void UpdateFirstPoint(double* pickedone) {
+                LineSource->SetPoint1(pickedone[0], pickedone[1], pickedone[2]);
+            }
+            void UpdateSecondPoint(double* pickedtwo) {
+                LineSource->SetPoint2(pickedtwo[0], pickedtwo[1], pickedtwo[2]);
+            }
+            void setVTKActor(vtkActor* lineActor) {
+                this->lineActor = lineActor;
+            }
 
-    private:
-        vtkLineSource* LineSource;
-        vtkTextActor* TextActor;
-        vtkActor* lineActor;
-        int click = 0;*/
+        private:
+            vtkLineSource* LineSource;
+            vtkTextActor* TextActor;
+            vtkActor* lineActor;
+            int click = 0;*/
     };
     /*vtkStandardNewMacro(customMouseInteractorStyle);*/
 
@@ -176,7 +192,7 @@ namespace {
             QTextStream out(&file);
 
             // Loop through all lines and polygons in vectors
-/* or (auto line : lines) {
+            for (auto line : lines) {
 
                 double* point1 = line.first->GetPoint1();
                 double* point2 = line.first->GetPoint2();
@@ -200,14 +216,14 @@ namespace {
                     << poly.second->GetProperty()->GetColor()[1] << " "
                     << poly.second->GetProperty()->GetColor()[2] << " ";
                 out << poly.second->GetProperty()->GetLineWidth() << Qt::endl;
-            }*/
-         
+
+            }
 
             for (const auto& entry : circleData) {
                 int circleIndex = entry.first;
                 const std::vector<std::string>& values = entry.second;
 
-                
+
 
                 // Write the values
                 for (const std::string& value : values) {
@@ -216,20 +232,98 @@ namespace {
 
                 out << Qt::endl;
             }
-            /*  for (const QString& data : circleData) {
-                if (count == 0) {
-                    out << "C ";
+            
+            for (const auto& entry : starData) {
+                int starIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
+
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
                 }
-               
 
-                out << data << " ";
+                out << Qt::endl;
+            }
+            for (const auto& entry : arcData) {
+                int arcIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
 
-                count++;
-                if (count % 8 == 0) {
-                    out << Qt::endl;
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
                 }
-            }*/
 
+                out << Qt::endl;
+            }
+            for (const auto& entry : sphereData) {
+                int shpereIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
+
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
+                }
+
+                out << Qt::endl;
+            }
+            for (const auto& entry : cubeData) {
+                int cubeIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
+
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
+                }
+
+                out << Qt::endl;
+            }
+            for (const auto& entry : ellipseData) {
+                int ellipseIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
+
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
+                }
+
+                out << Qt::endl;
+            }
+            for (const auto& entry : heartData) {
+                int heartIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
+
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
+                }
+
+                out << Qt::endl;
+            }
+            for (const auto& entry : EllipsoidData) {
+                int ellipsoidIndex = entry.first;
+                const std::vector<std::string>& values = entry.second;
+
+
+
+                // Write the values
+                for (const std::string& value : values) {
+                    out << QString::fromStdString(value) << " ";
+                }
+
+                out << Qt::endl;
+            }
 
             file.close();
         }
@@ -529,7 +623,10 @@ namespace {
         double centerY = QInputDialog::getDouble(NULL, "Enter center coordinates", "y coordinate", 0, -1000, 1000, 2);
         double radius = QInputDialog::getDouble(NULL, "Enter radius", "Radius", 1.0, 0.1, 100.0, 2);
         int numPoints = QInputDialog::getInt(NULL, "Enter number of points", "Number of points", 5, 3, 100, 1);
-
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strRadius = std::to_string(radius);
+        std::string strNumPoints = std::to_string(numPoints);
         vtkPoints* points = vtkPoints::New();
         vtkCellArray* lines = vtkCellArray::New();
         double angle = 0.0;
@@ -556,26 +653,100 @@ namespace {
 
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
-
+        double re = 0;
+        double ge = 0;
+        double be = 0;
         QColorDialog colorDialog;
         if (colorDialog.exec() == QDialog::Accepted) {
             QColor color = colorDialog.currentColor();
-            int red = color.red();
-            int green = color.green();
-            int blue = color.blue();
+            double red = color.red();
+            double green = color.green();
+            double blue = color.blue();
             actor->GetProperty()->SetColor(red, green, blue);
+            re = red;
+            ge = green;
+            be = blue;
         }
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
 
         double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
         actor->GetProperty()->SetLineWidth(lineWidth);
+        std::string strlineWidth = std::to_string(lineWidth);
         drawnshapes.insert("Star " + QString::number(IStar));
+        starData[wstar] = { "s", strCenterX, strCenterY, strRadius,strNumPoints , strre, strge, strbe, strlineWidth};
+        for (const std::string& value : starData[wstar]) {
+            std::cout << value << " ";
+        }
         IStar++;
+        wstar++;
         renderer->AddActor(actor);
         actors.push_back(actor);
         renderer->ResetCamera();
         window->Render();
     }
+    void star(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double radius, int numPoints, double red, double green, double blue,double lineWidth){
+        
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strRadius = std::to_string(radius);
+        std::string strNumPoints = std::to_string(numPoints);
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+        double angle = 0.0;
+        double angleStep = 2.0 * vtkMath::Pi() / numPoints;
+        for (int i = 0; i < numPoints; i++) {
+            double x = centerX + radius * cos(angle);
+            double y = centerY + radius * sin(angle);
+            points->InsertNextPoint(x, y, 0.0);
 
+            vtkLine* line = vtkLine::New();
+            line->GetPointIds()->SetId(0, i);
+            line->GetPointIds()->SetId(1, (i + numPoints / 2) % numPoints);
+            lines->InsertNextCell(line);
+
+            angle += angleStep;
+        }
+
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+        
+          
+            actor->GetProperty()->SetColor(red, green, blue);
+            re = red;
+            ge = green;
+            be = blue;
+        
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+
+        
+        actor->GetProperty()->SetLineWidth(lineWidth);
+        std::string strlineWidth = std::to_string(lineWidth);
+        drawnshapes.insert("Star " + QString::number(IStar));
+        starData[wstar] = { "s", strCenterX, strCenterY, strRadius,strNumPoints , strre, strge, strbe, strlineWidth };
+        for (const std::string& value : starData[wstar]) {
+            std::cout << value << " ";
+        }
+        IStar++;
+        wstar++;
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+        renderer->ResetCamera();
+        window->Render();
+    }
     void drawCircle(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor) {
         double centerX = QInputDialog::getDouble(NULL, "Enter center coordinates", "x coordinate", 0, -1000, 1000, 2);
         double centerY = QInputDialog::getDouble(NULL, "Enter center coordinates", "y coordinate", 0, -1000, 1000, 2);
@@ -645,27 +816,25 @@ namespace {
         for (int i = 0; i < numSides; i++) {
             polygon->GetPointIds()->SetId(i, i);
         }
-      
-       
-        circleData[wCircle] = { "c", strCenterX, strCenterY, strRadius, strre, strge, strbe, strlineWidth,"p"};
+
+
+        circleData[wCircle] = { "c", strCenterX, strCenterY, strRadius, strre, strge, strbe, strlineWidth };
         for (const std::string& value : circleData[wCircle]) {
             std::cout << value << " ";
         }
-         drawnshapes.insert("Circle " + QString::number(ICircle));
+        drawnshapes.insert("Circle " + QString::number(ICircle));
         ICircle++;
         wCircle++;
-       
-        renderer->AddActor(actor);
-        actors.push_back(actor);
+
         renderer->ResetCamera();
         window->Render();
-    } 
-    
-   
+    }
+
+
     void drawCircleread(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double radius, double red, double green, double blue, double lineWidth) {
-        
+
         int numSides = 100;
-        
+
 
         vtkPoints* points = vtkPoints::New();
         vtkCellArray* lines = vtkCellArray::New();
@@ -696,17 +865,17 @@ namespace {
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
 
-      
-            actor->GetProperty()->SetColor(red, green, blue);
-         /* circleData.insert(QString::number(centerX));
-            circleData.insert(QString::number(centerY));
-            circleData.insert(QString::number(radius));
-            circleData.insert(QString::number(red));
-            circleData.insert(QString::number(green));
-            circleData.insert(QString::number(blue));*/
-        
+
+        actor->GetProperty()->SetColor(red, green, blue);
+        /* circleData.insert(QString::number(centerX));
+           circleData.insert(QString::number(centerY));
+           circleData.insert(QString::number(radius));
+           circleData.insert(QString::number(red));
+           circleData.insert(QString::number(green));
+           circleData.insert(QString::number(blue));*/
+
         actor->GetProperty()->SetLineWidth(lineWidth);
-      //circleData.insert(QString::number(lineWidth));
+        //circleData.insert(QString::number(lineWidth));
         renderer->AddActor(actor);
 
         // Create a pair of vtkPolygon and vtkActor objects and add them to the polygons vector
@@ -715,10 +884,10 @@ namespace {
         for (int i = 0; i < numSides; i++) {
             polygon->GetPointIds()->SetId(i, i);
         }
-       
+
         ICircle++;
-        
-       
+
+
         renderer->ResetCamera();
         window->Render();
     }
@@ -729,7 +898,10 @@ namespace {
         int numSides = 1000;
         int numSegments = 100;
         double radius = QInputDialog::getDouble(NULL, "Enter radius", "Radius", 1.0, 0.1, 100.0, 2);
-
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strCenterZ = std::to_string(centerZ);
+        std::string strRadius = std::to_string(radius);
         vtkPoints* points = vtkPoints::New();
         vtkCellArray* lines = vtkCellArray::New();
         for (int i = 0; i <= numSegments; i++) {
@@ -787,24 +959,128 @@ namespace {
 
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
-
+        double re = 0;
+        double ge = 0;
+        double be = 0;
         QColorDialog colorDialog;
         if (colorDialog.exec() == QDialog::Accepted) {
             QColor color = colorDialog.currentColor();
-            int red = color.red();
-            int green = color.green();
-            int blue = color.blue();
+            double red = color.red();
+            double green = color.green();
+            double blue = color.blue();
             actor->GetProperty()->SetColor(red, green, blue);
         }
 
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
         double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
+        std::string strlineWidth = std::to_string(lineWidth);
         actor->GetProperty()->SetLineWidth(lineWidth);
 
         renderer->AddActor(actor);
         actors.push_back(actor);
-
+        sphereData[wSphere] = { "SP", strCenterX, strCenterY, strCenterZ ,strRadius, strre, strge, strbe, strlineWidth};
+        for (const std::string& value : sphereData[wSphere]) {
+            std::cout << value << " ";
+        }
         drawnshapes.insert("sphere " + QString::number(ISphere));
         ISphere++;
+        wSphere++;
+
+
+        renderer->ResetCamera();
+        window->Render();
+    }
+    void sphere(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double centerZ, double radius, double red, double green, double blue, double lineWidth){
+   
+        int numSides = 1000;
+        int numSegments = 100;
+        
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strCenterZ = std::to_string(centerZ);
+        std::string strRadius = std::to_string(radius);
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+        for (int i = 0; i <= numSegments; i++) {
+            double theta1 = vtkMath::Pi() * i / numSegments;
+            double sinTheta1 = sin(theta1);
+            double cosTheta1 = cos(theta1);
+
+            for (int j = 0; j < numSides; j++) {
+                double phi = 2.0 * vtkMath::Pi() * j / numSides;
+                double sinPhi = sin(phi);
+                double cosPhi = cos(phi);
+
+                double x = centerX + radius * sinTheta1 * cosPhi;
+                double y = centerY + radius * sinTheta1 * sinPhi;
+                double z = centerZ + radius * cosTheta1;
+                points->InsertNextPoint(x, y, z);
+            }
+        }
+
+        for (int i = 0; i < numSegments; i++) {
+            for (int j = 0; j < numSides; j++) {
+                int p1 = i * numSides + j;
+                int p2 = i * numSides + (j + 1) % numSides;
+                int p3 = (i + 1) * numSides + j;
+                int p4 = (i + 1) * numSides + (j + 1) % numSides;
+
+                vtkLine* line1 = vtkLine::New();
+                line1->GetPointIds()->SetId(0, p1);
+                line1->GetPointIds()->SetId(1, p2);
+                lines->InsertNextCell(line1);
+
+                vtkLine* line2 = vtkLine::New();
+                line2->GetPointIds()->SetId(0, p1);
+                line2->GetPointIds()->SetId(1, p3);
+                lines->InsertNextCell(line2);
+
+                vtkLine* line3 = vtkLine::New();
+                line3->GetPointIds()->SetId(0, p2);
+                line3->GetPointIds()->SetId(1, p4);
+                lines->InsertNextCell(line3);
+
+                vtkLine* line4 = vtkLine::New();
+                line4->GetPointIds()->SetId(0, p3);
+                line4->GetPointIds()->SetId(1, p4);
+                lines->InsertNextCell(line4);
+            }
+        }
+
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+        
+            actor->GetProperty()->SetColor(red, green, blue);
+        
+
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+        
+        std::string strlineWidth = std::to_string(lineWidth);
+        actor->GetProperty()->SetLineWidth(lineWidth);
+
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+        sphereData[wSphere] = { "SP", strCenterX, strCenterY, strCenterZ ,strRadius, strre, strge, strbe, strlineWidth };
+        for (const std::string& value : sphereData[wSphere]) {
+            std::cout << value << " ";
+        }
+        drawnshapes.insert("sphere " + QString::number(ISphere));
+        ISphere++;
+        wSphere++;
 
 
         renderer->ResetCamera();
@@ -815,7 +1091,10 @@ namespace {
         double centerY = QInputDialog::getDouble(NULL, "Enter center coordinates", "y coordinate", 0, -1000, 1000, 2);
         double centerZ = QInputDialog::getDouble(NULL, "Enter center coordinates", "z coordinate", 0, -1000, 1000, 2);
         double sideLength = QInputDialog::getDouble(NULL, "Enter side length", "Side length", 1.0, 0.1, 100.0, 2);
-
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strCenterZ = std::to_string(centerZ);
+        std::string strsideLength = std::to_string(sideLength);
         double halfLength = sideLength / 2.0;
         double xMin = centerX - halfLength;
         double xMax = centerX + halfLength;
@@ -874,17 +1153,26 @@ namespace {
         actor->SetMapper(mapper);
 
         // Set color and line width
+        double re = 0;
+        double ge = 0;
+        double be = 0;
         QColorDialog colorDialog;
         if (colorDialog.exec() == QDialog::Accepted) {
             QColor color = colorDialog.currentColor();
-            
+
             double red = color.redF();
             double green = color.greenF();
             double blue = color.blueF();
+            re = red;
+            ge = green;
+            be = blue;
             actor->GetProperty()->SetColor(red, green, blue);
         }
-
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
         double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
+        std::string strlineWidth = std::to_string(lineWidth);
         actor->GetProperty()->SetLineWidth(lineWidth);
 
         // Add the actor to the renderer
@@ -892,14 +1180,116 @@ namespace {
         actors.push_back(actor);
 
         // Update the drawn shapes collection
+        cubeData[wCube] = { "CB", strCenterX, strCenterY, strCenterZ,strsideLength ,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : cubeData[wCube]) {
+            std::cout << value << " ";
+        }
         drawnshapes.insert("cube " + QString::number(ICube));
         ICube++;
-
+        wCube++;
         // Reset the camera and render the window
         renderer->ResetCamera();
         window->Render();
     }
+    void cube(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double centerZ, double sideLength, double red, double green, double blue, double lineWidth){
+        
+       
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strCenterZ = std::to_string(centerZ);
+        std::string strsideLength = std::to_string(sideLength);
+        double halfLength = sideLength / 2.0;
+        double xMin = centerX - halfLength;
+        double xMax = centerX + halfLength;
+        double yMin = centerY - halfLength;
+        double yMax = centerY + halfLength;
+        double zMin = centerZ - halfLength;
+        double zMax = centerZ + halfLength;
 
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+
+        // Define the vertices of the cube
+        double vertices[8][3] = {
+            {xMin, yMin, zMin},
+            {xMax, yMin, zMin},
+            {xMax, yMax, zMin},
+            {xMin, yMax, zMin},
+            {xMin, yMin, zMax},
+            {xMax, yMin, zMax},
+            {xMax, yMax, zMax},
+            {xMin, yMax, zMax}
+        };
+
+        // Add the vertices to the points array
+        for (int i = 0; i < 8; i++) {
+            double* vertex = vertices[i];
+            points->InsertNextPoint(vertex);
+        }
+
+        // Define the edges of the cube
+        int edges[12][2] = {
+            {0, 1}, {1, 2}, {2, 3}, {3, 0}, // Bottom face
+            {4, 5}, {5, 6}, {6, 7}, {7, 4}, // Top face
+            {0, 4}, {1, 5}, {2, 6}, {3, 7}  // Connecting edges
+        };
+
+        // Add the edges to the lines array
+        for (int i = 0; i < 12; i++) {
+            int* edge = edges[i];
+            vtkLine* line = vtkLine::New();
+            line->GetPointIds()->SetId(0, edge[0]);
+            line->GetPointIds()->SetId(1, edge[1]);
+            lines->InsertNextCell(line);
+        }
+
+        // Create the polydata and set the points and lines
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        // Create the mapper and actor
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+
+        // Set color and line width
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+        
+            
+            
+            re = red;
+            ge = green;
+            be = blue;
+            actor->GetProperty()->SetColor(red, green, blue);
+        
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+     
+        std::string strlineWidth = std::to_string(lineWidth);
+        actor->GetProperty()->SetLineWidth(lineWidth);
+
+        // Add the actor to the renderer
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+
+        // Update the drawn shapes collection
+        cubeData[wCube] = { "CB", strCenterX, strCenterY, strCenterZ,strsideLength ,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : cubeData[wCube]) {
+            std::cout << value << " ";
+        }
+        drawnshapes.insert("cube " + QString::number(ICube));
+        ICube++;
+        wCube++;
+        // Reset the camera and render the window
+        renderer->ResetCamera();
+        window->Render();
+    }
     void drawEllipsoid(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor) {
         double centerX = QInputDialog::getDouble(NULL, "Enter center coordinates", "x coordinate", 0, -1000, 1000, 2);
         double centerY = QInputDialog::getDouble(NULL, "Enter center coordinates", "y coordinate", 0, -1000, 1000, 2);
@@ -907,6 +1297,12 @@ namespace {
         double radiusX = QInputDialog::getDouble(NULL, "Enter X-axis radius", "X-axis radius", 1.0, 0.1, 100.0, 2);
         double radiusY = QInputDialog::getDouble(NULL, "Enter Y-axis radius", "Y-axis radius", 1.0, 0.1, 100.0, 2);
         double radiusZ = QInputDialog::getDouble(NULL, "Enter Z-axis radius", "Z-axis radius", 1.0, 0.1, 100.0, 2);
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strCenterZ = std::to_string(centerZ);
+        std::string strRadiusX = std::to_string(radiusX);
+        std::string strRadiusY = std::to_string(radiusY);
+        std::string strRadiusZ = std::to_string(radiusZ);
         int numSides = 1000;
         int numSegments = 100;
 
@@ -969,24 +1365,140 @@ namespace {
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
 
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+
         QColorDialog colorDialog;
         if (colorDialog.exec() == QDialog::Accepted) {
             QColor color = colorDialog.currentColor();
-            int red = color.red();
-            int green = color.green();
-            int blue = color.blue();
+            double red = color.red();
+            double green = color.green();
+            double blue = color.blue();
+            re = red;
+            ge = green;
+            be = blue;
             actor->GetProperty()->SetColor(red, green, blue);
         }
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
 
         double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
+        std::string strlineWidth = std::to_string(lineWidth);
         actor->GetProperty()->SetLineWidth(lineWidth);
 
         renderer->AddActor(actor);
         actors.push_back(actor);
-
+        EllipsoidData[wEllipsoid] = { "E", strCenterX, strCenterY, strCenterZ ,strRadiusX, strRadiusY,strRadiusZ,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : EllipsoidData[wEllipsoid]) {
+            std::cout << value << " ";
+        }
         drawnshapes.insert("ellipsoid " + QString::number(IEllipsoid));
         IEllipsoid++;
+        wEllipsoid++;
+        renderer->ResetCamera();
+        window->Render();
+    }
+    void ellipsoid(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double centerZ, double radiusX,double radiusY,double radiusZ, double red, double green, double blue, double lineWidth){
+        
+        
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strCenterZ = std::to_string(centerZ);
+        std::string strRadiusX = std::to_string(radiusX);
+        std::string strRadiusY = std::to_string(radiusY);
+        std::string strRadiusZ = std::to_string(radiusZ);
+        int numSides = 1000;
+        int numSegments = 100;
 
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+
+        for (int i = 0; i <= numSegments; i++) {
+            double theta1 = vtkMath::Pi() * i / numSegments;
+            double sinTheta1 = sin(theta1);
+            double cosTheta1 = cos(theta1);
+
+            for (int j = 0; j < numSides; j++) {
+                double phi = 2.0 * vtkMath::Pi() * j / numSides;
+                double sinPhi = sin(phi);
+                double cosPhi = cos(phi);
+
+                double x = centerX + radiusX * sinTheta1 * cosPhi;
+                double y = centerY + radiusY * sinTheta1 * sinPhi;
+                double z = centerZ + radiusZ * cosTheta1;
+                points->InsertNextPoint(x, y, z);
+            }
+        }
+
+        for (int i = 0; i < numSegments; i++) {
+            for (int j = 0; j < numSides; j++) {
+                int p1 = i * numSides + j;
+                int p2 = i * numSides + (j + 1) % numSides;
+                int p3 = (i + 1) * numSides + j;
+                int p4 = (i + 1) * numSides + (j + 1) % numSides;
+
+                vtkLine* line1 = vtkLine::New();
+                line1->GetPointIds()->SetId(0, p1);
+                line1->GetPointIds()->SetId(1, p2);
+                lines->InsertNextCell(line1);
+
+                vtkLine* line2 = vtkLine::New();
+                line2->GetPointIds()->SetId(0, p1);
+                line2->GetPointIds()->SetId(1, p3);
+                lines->InsertNextCell(line2);
+
+                vtkLine* line3 = vtkLine::New();
+                line3->GetPointIds()->SetId(0, p2);
+                line3->GetPointIds()->SetId(1, p4);
+                lines->InsertNextCell(line3);
+
+                vtkLine* line4 = vtkLine::New();
+                line4->GetPointIds()->SetId(0, p3);
+                line4->GetPointIds()->SetId(1, p4);
+                lines->InsertNextCell(line4);
+            }
+        }
+
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+
+        
+            
+            re = red;
+            ge = green;
+            be = blue;
+            actor->GetProperty()->SetColor(red, green, blue);
+        
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+
+        
+        std::string strlineWidth = std::to_string(lineWidth);
+        actor->GetProperty()->SetLineWidth(lineWidth);
+
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+        EllipsoidData[wEllipsoid] = { "E", strCenterX, strCenterY, strCenterZ ,strRadiusX, strRadiusY,strRadiusZ,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : EllipsoidData[wEllipsoid]) {
+            std::cout << value << " ";
+        }
+        drawnshapes.insert("ellipsoid " + QString::number(IEllipsoid));
+        IEllipsoid++;
+        wEllipsoid++;
         renderer->ResetCamera();
         window->Render();
     }
@@ -996,7 +1508,9 @@ namespace {
         double centerX = QInputDialog::getDouble(NULL, "Enter center coordinates", "x coordinate", 0, -1000, 1000, 2);
         double centerY = QInputDialog::getDouble(NULL, "Enter center coordinates", "y coordinate", 0, -1000, 1000, 2);
         double width = QInputDialog::getDouble(NULL, "Enter width", "Width", 1.0, 0.1, 100.0, 2);
-
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strwidth = std::to_string(width);
         int numSegments = 100;
         double segmentAngle = 2 * M_PI / numSegments;
         double radius = width / (2 * cos(segmentAngle / 2));
@@ -1028,17 +1542,29 @@ namespace {
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
 
+        double re = 0;
+        double ge = 0;
+        double be = 0;
         QColorDialog colorDialog;
         if (colorDialog.exec() == QDialog::Accepted) {
             QColor color = colorDialog.currentColor();
-            int red = color.red();
-            int green = color.green();
-            int blue = color.blue();
+            double red = color.red();
+            double green = color.green();
+            double blue = color.blue();
             actor->GetProperty()->SetColor(red, green, blue);
         }
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
 
         double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
         actor->GetProperty()->SetLineWidth(lineWidth);
+        std::string strlineWidth = std::to_string(lineWidth);
+
+        heartData[wHeart] = { "h", strCenterX, strCenterY, strwidth, strre, strge, strbe, strlineWidth };
+        for (const std::string& value : heartData[wHeart]) {
+            std::cout << value << " ";
+        }
         drawnshapes.insert("Heart " + QString::number(IHeart));
         IHeart++;
         renderer->AddActor(actor);
@@ -1047,13 +1573,151 @@ namespace {
         renderer->ResetCamera();
         window->Render();
     }
+    void heart(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double width, double red, double green, double blue, double lineWidth){
+        
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strwidth = std::to_string(width);
+        int numSegments = 100;
+        double segmentAngle = 2 * M_PI / numSegments;
+        double radius = width / (2 * cos(segmentAngle / 2));
 
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+
+        for (int i = 0; i <= numSegments; i++) {
+            double angle = i * segmentAngle - M_PI;
+            double x = centerX + radius * pow(sin(angle), 3);
+            double y = centerY - radius * (13 * cos(angle) - 5 * cos(2 * angle) - 2 * cos(3 * angle) - cos(4 * angle)) / 16;
+            points->InsertNextPoint(x, y, 0.0);
+
+            if (i > 0) {
+                vtkLine* line = vtkLine::New();
+                line->GetPointIds()->SetId(0, i - 1);
+                line->GetPointIds()->SetId(1, i);
+                lines->InsertNextCell(line);
+            }
+        }
+
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+        
+            actor->GetProperty()->SetColor(red, green, blue);
+        
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+
+        
+        actor->GetProperty()->SetLineWidth(lineWidth);
+        std::string strlineWidth = std::to_string(lineWidth);
+
+        heartData[wHeart] = { "h", strCenterX, strCenterY, strwidth, strre, strge, strbe, strlineWidth };
+        for (const std::string& value : heartData[wHeart]) {
+            std::cout << value << " ";
+        }
+        drawnshapes.insert("Heart " + QString::number(IHeart));
+        IHeart++;
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+
+        renderer->ResetCamera();
+        window->Render();
+    }
     void drawArc(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor) {
         double centerX = QInputDialog::getDouble(NULL, "Enter center coordinates", "x coordinate", 0, -1000, 1000, 2);
         double centerY = QInputDialog::getDouble(NULL, "Enter center coordinates", "y coordinate", 0, -1000, 1000, 2);
         double radius = QInputDialog::getDouble(NULL, "Enter radius", "Radius", 1.0, 0.1, 100.0, 2);
         double startAngle = QInputDialog::getDouble(NULL, "Enter start angle", "Start angle (in degrees)", 0, -360, 360, 2);
         double endAngle = QInputDialog::getDouble(NULL, "Enter end angle", "End angle (in degrees)", 90, -360, 360, 2);
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strRadius = std::to_string(radius);
+        std::string strstartAngle = std::to_string(startAngle);
+        std::string strendAngle = std::to_string(endAngle);
+        
+        int numSegments = 100;
+        double segmentAngle = (endAngle - startAngle) / numSegments;
+
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+        for (int i = 0; i <= numSegments; i++) {
+            double angle = vtkMath::RadiansFromDegrees(startAngle + i * segmentAngle);
+            double x = centerX + radius * cos(angle);
+            double y = centerY + radius * sin(angle);
+            points->InsertNextPoint(x, y, 0.0);
+
+            if (i > 0) {
+                vtkLine* line = vtkLine::New();
+                line->GetPointIds()->SetId(0, i - 1);
+                line->GetPointIds()->SetId(1, i);
+                lines->InsertNextCell(line);
+            }
+        }
+
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+        QColorDialog colorDialog;
+        if (colorDialog.exec() == QDialog::Accepted) {
+            QColor color = colorDialog.currentColor();
+            double red = color.red();
+            double green = color.green();
+            double blue = color.blue();
+            re = red;
+            ge = green;
+            be = blue;
+            actor->GetProperty()->SetColor(red, green, blue);
+        }
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+        double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
+        std::string strlineWidth = std::to_string(lineWidth);
+        actor->GetProperty()->SetLineWidth(lineWidth);
+
+        arcData[wArc] = { "a", strCenterX, strCenterY, strRadius,strstartAngle,strendAngle ,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : arcData[wArc]) {
+            std::cout << value << " ";
+        }
+        drawnshapes.insert("Arc " + QString::number(IArc));
+        IArc++;
+        wArc++;
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+
+        renderer->ResetCamera();
+        window->Render();
+    }
+    void arc(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double radius, double startAngle, double endAngle, double red, double green, double blue, double lineWidth){
+       
+        
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strRadius = std::to_string(radius);
+        std::string strstartAngle = std::to_string(startAngle);
+        std::string strendAngle = std::to_string(endAngle);
 
         int numSegments = 100;
         double segmentAngle = (endAngle - startAngle) / numSegments;
@@ -1084,19 +1748,31 @@ namespace {
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
 
-        QColorDialog colorDialog;
-        if (colorDialog.exec() == QDialog::Accepted) {
-            QColor color = colorDialog.currentColor();
-            int red = color.red();
-            int green = color.green();
-            int blue = color.blue();
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+       
+            
+       
+            re = red;
+            ge = green;
+            be = blue;
             actor->GetProperty()->SetColor(red, green, blue);
-        }
-
-        double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
+        
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+        
+        std::string strlineWidth = std::to_string(lineWidth);
         actor->GetProperty()->SetLineWidth(lineWidth);
+
+        arcData[wArc] = { "a", strCenterX, strCenterY, strRadius,strstartAngle,strendAngle ,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : arcData[wArc]) {
+            std::cout << value << " ";
+        }
         drawnshapes.insert("Arc " + QString::number(IArc));
         IArc++;
+        wArc++;
         renderer->AddActor(actor);
         actors.push_back(actor);
 
@@ -1110,7 +1786,12 @@ namespace {
         double semiAxisY = QInputDialog::getDouble(NULL, "Enter semi-axis lengths", "Semi-axis length along y", 1.0, 0.1, 100.0, 2);
         double startAngle = QInputDialog::getDouble(NULL, "Enter start angle", "Start angle (in degrees)", 0, -360, 360, 2);
         double endAngle = QInputDialog::getDouble(NULL, "Enter end angle", "End angle (in degrees)", 360, -360, 360, 2);
-
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strsemiAxisX = std::to_string(semiAxisX);
+        std::string strsemiAxisY = std::to_string(semiAxisY);
+        std::string strstartAngle = std::to_string(startAngle);
+        std::string strendAngle = std::to_string(endAngle);
         int numSegments = 100;
         double segmentAngle = (endAngle - startAngle) / numSegments;
 
@@ -1140,28 +1821,118 @@ namespace {
         vtkActor* actor = vtkActor::New();
         actor->SetMapper(mapper);
 
+        double re = 0;
+        double ge = 0;
+        double be = 0;
         QColorDialog colorDialog;
         if (colorDialog.exec() == QDialog::Accepted) {
             QColor color = colorDialog.currentColor();
-            int red = color.red();
-            int green = color.green();
-            int blue = color.blue();
+            double red = color.red();
+            double green = color.green();
+            double blue = color.blue();
+
+            re = red;
+            ge = green;
+            be = blue;
+
             actor->GetProperty()->SetColor(red, green, blue);
 
             actor->GetProperty()->SetOpacity(0.5); // set ellipse opacity
 
         }
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
 
         double lineWidth = QInputDialog::getDouble(NULL, "Enter line width", "Line width", 1.0, 0.1, 10.0, 2);
         actor->GetProperty()->SetLineWidth(lineWidth);
+        std::string strlineWidth = std::to_string(lineWidth);
+
+
+        ellipseData[wEllipse] = { "E", strCenterX, strCenterY, strsemiAxisX,strsemiAxisY, strstartAngle,strendAngle,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : ellipseData[wEllipse]) {
+            std::cout << value << " ";
+        }
         drawnshapes.insert("Ellipse " + QString::number(IEllipse));
         IEllipse++;
+        wEllipse++;
         renderer->AddActor(actor);
         actors.push_back(actor);
         renderer->ResetCamera();
         window->Render();
     }
+    void ellipse(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window, vtkTextActor* textActor, double centerX, double centerY, double semiAxisX, double semiAxisY, double startAngle, double endAngle,double red,double green,double blue, double lineWidth){
+       
+        std::string strCenterX = std::to_string(centerX);
+        std::string strCenterY = std::to_string(centerY);
+        std::string strsemiAxisX = std::to_string(semiAxisX);
+        std::string strsemiAxisY = std::to_string(semiAxisY);
+        std::string strstartAngle = std::to_string(startAngle);
+        std::string strendAngle = std::to_string(endAngle);
+        int numSegments = 100;
+        double segmentAngle = (endAngle - startAngle) / numSegments;
 
+        vtkPoints* points = vtkPoints::New();
+        vtkCellArray* lines = vtkCellArray::New();
+        for (int i = 0; i <= numSegments; i++) {
+            double angle = vtkMath::RadiansFromDegrees(startAngle + i * segmentAngle);
+            double x = centerX + semiAxisX * cos(angle);
+            double y = centerY + semiAxisY * sin(angle);
+            points->InsertNextPoint(x, y, 0.0);
+
+            if (i > 0) {
+                vtkLine* line = vtkLine::New();
+                line->GetPointIds()->SetId(0, i - 1);
+                line->GetPointIds()->SetId(1, i);
+                lines->InsertNextCell(line);
+            }
+        }
+
+        vtkPolyData* polyData = vtkPolyData::New();
+        polyData->SetPoints(points);
+        polyData->SetLines(lines);
+
+        vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+        mapper->SetInputData(polyData);
+
+        vtkActor* actor = vtkActor::New();
+        actor->SetMapper(mapper);
+
+        double re = 0;
+        double ge = 0;
+        double be = 0;
+        
+
+            re = red;
+            ge = green;
+            be = blue;
+
+            actor->GetProperty()->SetColor(red, green, blue);
+
+            actor->GetProperty()->SetOpacity(0.5); // set ellipse opacity
+
+        
+        std::string strre = std::to_string(re);
+        std::string strge = std::to_string(ge);
+        std::string strbe = std::to_string(be);
+
+        
+        actor->GetProperty()->SetLineWidth(lineWidth);
+        std::string strlineWidth = std::to_string(lineWidth);
+
+
+        ellipseData[wEllipse] = { "E", strCenterX, strCenterY, strsemiAxisX,strsemiAxisY, strstartAngle,strendAngle,strre, strge, strbe, strlineWidth };
+        for (const std::string& value : ellipseData[wEllipse]) {
+            std::cout << value << " ";
+        }
+        drawnshapes.insert("Ellipse " + QString::number(IEllipse));
+        IEllipse++;
+        wEllipse++;
+        renderer->AddActor(actor);
+        actors.push_back(actor);
+        renderer->ResetCamera();
+        window->Render();
+    }
     void selectLine(int index) {
         if (index >= 0 && index < lineActors.size()) {
             vtkActor* lineActor = lineActors[index];
@@ -1222,20 +1993,132 @@ namespace {
                 }
                 else if (line.startsWith("c")) {
                     QStringList data = line.split(' ');
-                    
+
                     double point1X = data[1].toDouble();
                     double point1Y = data[2].toDouble();
                     double radius = data[3].toDouble();
-                    
+
                     double colorR = data[4].toDouble();
                     double colorG = data[5].toDouble();
                     double colorB = data[6].toDouble();
                     double lineWidth = data[7].toDouble();
-                    
-               
-                     drawCircleread(renderer, window, textActor, point1X, point1Y, radius, colorR, colorG, colorB, lineWidth);
+
+                    drawCircleread(renderer, window, textActor, point1X, point1Y, radius, colorR, colorG, colorB, lineWidth);
 
                 }
+                else if (line.startsWith("CB")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double point1Z = data[3].toDouble();
+                    double sidelength = data[4].toDouble();
+                    double colorR = data[5].toDouble();
+                    double colorG = data[6].toDouble();
+                    double colorB = data[7].toDouble();
+                    double lineWidth = data[8].toDouble();
+
+                    cube(renderer, window, textActor, point1X, point1Y, point1Z, sidelength, colorR, colorG, colorB, lineWidth);
+
+                }
+                else if (line.startsWith("s")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double radius = data[3].toDouble();
+                    double numPoints = data[4].toDouble();
+                    double colorR = data[5].toDouble();
+                    double colorG = data[6].toDouble();
+                    double colorB = data[7].toDouble();
+                    double lineWidth = data[8].toDouble();
+
+                    star(renderer, window, textActor, point1X, point1Y, radius, numPoints,colorR, colorG, colorB, lineWidth);
+
+                }
+                else if (line.startsWith("e")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double midX = data[3].toDouble();
+
+                    double midY = data[4].toDouble();
+                    double startAngle = data[5].toDouble();
+                    double endAngle = data[6].toDouble();
+                    double colorR = data[7].toDouble();
+                    double colorG = data[8].toDouble();
+                    double colorB = data[9].toDouble();
+                    double lineWidth = data[10].toDouble();
+
+                    ellipse(renderer, window, textActor, point1X, point1Y, midX, midY, startAngle, endAngle ,colorR, colorG, colorB, lineWidth);
+
+                }
+                else if (line.startsWith("a")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double radius = data[3].toDouble();
+
+                    double startAngle = data[4].toDouble();
+                    double endAngle = data[5].toDouble();
+                    double colorR = data[6].toDouble();
+                    double colorG = data[7].toDouble();
+                    double colorB = data[8].toDouble();
+                    double lineWidth = data[9].toDouble();
+
+                    arc(renderer, window, textActor, point1X, point1Y, radius, startAngle , endAngle,colorR, colorG, colorB, lineWidth);
+
+                }
+                else if (line.startsWith("SP")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double point1Z = data[3].toDouble();
+                    double radius = data[4].toDouble();
+                    double colorR = data[5].toDouble();
+                    double colorG = data[6].toDouble();
+                    double colorB = data[7].toDouble();
+                    double lineWidth = data[8].toDouble();
+
+                    sphere(renderer, window, textActor, point1X, point1Y, point1Z,radius, colorR, colorG, colorB, lineWidth);
+
+                    }
+                else if (line.startsWith("ED")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double point1Z = data[3].toDouble();
+                    double radiusX = data[4].toDouble();
+                    double radiusY = data[5].toDouble();
+                    double radiusZ = data[6].toDouble();
+
+                    double colorR = data[7].toDouble();
+                    double colorG = data[8].toDouble();
+                    double colorB = data[9].toDouble();
+                    double lineWidth = data[10].toDouble();
+
+                    ellipsoid(renderer, window, textActor, point1X, point1Y, point1Z, radiusX, radiusY, radiusZ, colorR, colorG, colorB, lineWidth);
+
+                    }
+                else if (line.startsWith("h")) {
+                    QStringList data = line.split(' ');
+
+                    double point1X = data[1].toDouble();
+                    double point1Y = data[2].toDouble();
+                    double width = data[3].toDouble();
+
+                    double colorR = data[4].toDouble();
+                    double colorG = data[5].toDouble();
+                    double colorB = data[6].toDouble();
+                    double lineWidth = data[7].toDouble();
+
+                    heart(renderer, window, textActor, point1X, point1Y, width, colorR, colorG, colorB, lineWidth);
+
+                    }
             }
 
             file.close();
@@ -1279,81 +2162,110 @@ namespace {
     }
 
     void drawShapeWithColor(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window) {
-
-
-
-
         // Create a drop-down list dialog box
         bool ok;
         QString shapeName = QInputDialog::getItem(NULL, "Select a shape to change color", "Shapes:", QStringList(drawnshapes.begin(), drawnshapes.end()), 0, false, &ok);
         if (!ok) {
             return;
         }
-        
+
         // Find the selected shape and change its color to black
-        int shapeIndex = shapeName.split(" ")[1].toInt();
-        
         QString parts = shapeName.split(" ")[0];
-        int shapeIndex = drawnshapes.indexOf(shapeName);
-        actors[shapeIndex]->GetProperty()->SetColor(0, 0, 0);
-        
-        actors.erase(actors.begin() + shapeIndex);
-       
-        drawnshapes.erase(shapeName);
-        
+        int shapeIndex = -1;
         if (parts == "Line") {
-            ILine--;
+            shapeIndex = ILine - 1;
         }
         else if (parts == "Circle") {
-            ICircle--;
-         /* if (circleData.find(shapeIndex) != circleData.end()) {
-                circleData[shapeIndex][8] = "d";
-            }*/ if (shapeIndex >= 0 && shapeIndex < circleData.size()) {
-            // Erase the element at shapeIndex and shift the remaining elements
+            shapeIndex = ICircle - 1;
+        }
+        else if (parts == "Arc") {
+            shapeIndex = IArc - 1;
+        }
+        else if (parts == "Ellipse") {
+            shapeIndex = IEllipse - 1;
+        }
+        else if (parts == "Polygon") {
+            shapeIndex = IPolygon - 1;
+        }
+        else if (parts == "Heart") {
+            shapeIndex = IHeart - 1;
+        }
+        else if (parts == "Star") {
+            shapeIndex = IStar - 1;
+        }
+        else if (parts == "Right Polygon") {
+            shapeIndex = IRight - 1;
+        }
+
+        if (shapeIndex >= 0 && shapeIndex < actors.size()) {
+            vtkActor* actor = actors[shapeIndex];
+            renderer->RemoveActor(actor);
+            actors.erase(actors.begin() + shapeIndex);
+
+            // Render the updated scene after removing the actor
+            renderer->ResetCamera();
+            window->Render();
+        }
+
+        // Remove the selected shape from the corresponding data list
+        if (parts == "Circle") {
+            if (shapeIndex >= 0 && shapeIndex < circleData.size()) {
+                // Erase the element at shapeIndex and shift the remaining elements
                 auto it = circleData.begin();
                 std::advance(it, shapeIndex);
                 circleData.erase(it);
             }
             wCircle--;
-
         }
         else if (parts == "Arc") {
-            IArc--;
+            if (shapeIndex >= 0 && shapeIndex < arcData.size()) {
+                // Erase the element at shapeIndex and shift the remaining elements
+                auto it = arcData.begin();
+                std::advance(it, shapeIndex);
+                arcData.erase(it);
+            }
+            wArc--;
         }
         else if (parts == "Ellipse") {
-            IEllipse--;
-        }
-        else if (parts == "Polygon") {
-            IPolygon--;
+            if (shapeIndex >= 0 && shapeIndex < ellipseData.size()) {
+                // Erase the element at shapeIndex and shift the remaining elements
+                auto it = ellipseData.begin();
+                std::advance(it, shapeIndex);
+                ellipseData.erase(it);
+            }
+            wEllipse--;
         }
         else if (parts == "Heart") {
-            IHeart--;
+            if (shapeIndex >= 0 && shapeIndex < heartData.size()) {
+                // Erase the element at shapeIndex and shift the remaining elements
+                auto it = heartData.begin();
+                std::advance(it, shapeIndex);
+                heartData.erase(it);
+            }
+            wHeart--;
         }
         else if (parts == "Star") {
-            IStar--;
-        }
-        else if (parts == "Right Polygon") {
-            IRight--;
-        }
-        else if (parts == "Sphere")
-        {
-            ISphere--;
-        }
-        else if (parts == "cube")
-        {
-            ICube--;
-        }
-        else if (parts == "ellipsoid")
-        {
-            IEllipsoid--;
-        }
+            if (shapeIndex >= 0 && shapeIndex < starData.size()) {
+                // Erase theelement at shapeIndex and shift the remaining elements
+                auto it = starData.begin();
+                std::advance(it, shapeIndex);
+                starData.erase(it);
+            }
+            wstar--;
+        }// Remove the selected shape from the drawnshapes list
+        drawnshapes.erase(shapeName);
 
-
-
-
-        // Render the updated scene
-        renderer->ResetCamera();
-        window->Render();
+        // If the list is empty after erasing the shape, remove it from the screen
+        if (drawnshapes.empty()) {
+            renderer->RemoveAllViewProps();
+            renderer->ResetCamera();
+            window->Render();
+        }
+        else {
+            // Render the updated scene
+            renderer->ResetCamera();
+            window->Render();
+        }
     }
     void drawShapeWithColor3D(vtkRenderer* renderer, vtkGenericOpenGLRenderWindow* window) {
         // Create a drop-down list dialog box
@@ -1375,7 +2287,7 @@ namespace {
         if (parts == "Sphere") {
             ISphere--;
         }
-        
+
         if (parts == "Cube") {
             ICube--;
         }
@@ -1894,7 +2806,6 @@ int main(int argc, char** argv)
         // Do something with the value
         ::changeLineWidth(value, window, lineactor);
         });
-
 
     mainWindow.show();
 
