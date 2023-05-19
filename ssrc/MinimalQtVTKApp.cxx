@@ -97,8 +97,6 @@ std::set<QString> drawnshapes;
 std::map<int, std::vector<std::string>> circleData;
 
 
-
-
 namespace {
     // Define interaction style
     class customMouseInteractorStyle : public vtkInteractorStyleTrackballCamera
